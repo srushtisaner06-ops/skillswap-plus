@@ -50,4 +50,25 @@ const validateQuery = (schema) => {
   };
 };
 
-module.exports = { validate, validateQuery };
+/**
+ * Validates req.params against a Joi schema.
+ */
+const validateParams = (schema) => {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.params, {
+      abortEarly: false,
+      stripUnknown: true,
+      errors: { wrap: { label: '' } }
+    });
+
+    if (error) {
+      const messages = error.details.map((detail) => detail.message);
+      return next(new AppError(messages.join('. '), 400));
+    }
+
+    req.params = value;
+    next();
+  };
+};
+
+module.exports = { validate, validateQuery, validateParams };

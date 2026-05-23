@@ -2,19 +2,13 @@
    SkillSwap+ — Data Abstraction Layer
    
    ALL data access flows through this module.
-   In demo mode: returns mock data, ZERO network calls.
-   In live mode: delegates to real API services.
+   Delegates to real API services.
    
    This is the ONLY file pages should import
    for data operations.
    ═══════════════════════════════════════════ */
 
 import { store } from '../state.js';
-
-// ─── Mode Detection ─────────────────────────
-export function isDemoMode() {
-  return localStorage.getItem('demo_mode') === 'true';
-}
 
 // ─── Standardized Response Shape ─────────────
 // Every method returns: { data, error, message }
@@ -30,9 +24,6 @@ function fail(message) {
 // ═══════════════════════════════════════════
 
 export async function fetchProfile() {
-  if (isDemoMode()) {
-    return ok(store.getUserSafe());
-  }
   try {
     const { getProfile } = await import('./user.service.js');
     const user = await getProfile();
@@ -47,15 +38,6 @@ export async function fetchProfile() {
 }
 
 export async function saveProfile(data) {
-  if (isDemoMode()) {
-    const current = store.getUserSafe();
-    store.setUserFromAPI({
-      ...current,
-      ...data,
-      profilePicture: current.avatar
-    });
-    return ok(store.getUserSafe());
-  }
   try {
     const { updateProfile } = await import('./user.service.js');
     const updated = await updateProfile(data);
@@ -74,12 +56,6 @@ export async function saveProfile(data) {
 // ═══════════════════════════════════════════
 
 export async function fetchMySessions() {
-  if (isDemoMode()) {
-    return ok({
-      hosting: (store.get('sessions') || []).filter(s => s.role === 'hosting'),
-      attending: (store.get('sessions') || []).filter(s => s.role !== 'hosting')
-    });
-  }
   try {
     const { getMySessions } = await import('./session.service.js');
     const result = await getMySessions();
@@ -89,26 +65,84 @@ export async function fetchMySessions() {
   }
 }
 
+export async function fetchMyBookings() {
+  try {
+    const { getMyBookings } = await import('./booking.service.js');
+    return ok(await getMyBookings());
+  } catch (e) {
+    return fail(e.message || 'Bookings fetch error');
+  }
+}
+
 // ═══════════════════════════════════════════
 //  CREDITS / TRANSACTIONS
 // ═══════════════════════════════════════════
 
 export async function fetchTransactions() {
-  if (isDemoMode()) {
-    // Return demo transaction history
-    return ok([
-      { description: 'Session: Advanced Prompt Engineering', amount: -12, createdAt: '2026-04-10T10:00:00Z', type: 'booking' },
-      { description: 'Teaching: React Performance Mastery', amount: +15, createdAt: '2026-04-08T14:00:00Z', type: 'earning' },
-      { description: 'Referral bonus', amount: +25, createdAt: '2026-04-05T09:00:00Z', type: 'referral' },
-      { description: 'Welcome bonus', amount: +50, createdAt: '2026-04-01T00:00:00Z', type: 'bonus' }
-    ]);
-  }
   try {
     const { getTransactions } = await import('./credit.service.js');
     const transactions = await getTransactions();
     return ok(transactions || []);
   } catch (e) {
     return fail(e.message || 'Transactions fetch error');
+  }
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  PRESENTATION FEATURES
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+export async function fetchDashboardAnalytics() {
+  try {
+    const { getDashboardAnalytics } = await import('./platform.service.js');
+    return ok(await getDashboardAnalytics());
+  } catch (e) {
+    return fail(e.message || 'Analytics fetch error');
+  }
+}
+
+export async function fetchProjects(query = {}) {
+  try {
+    const { getProjects } = await import('./platform.service.js');
+    return ok(await getProjects(query));
+  } catch (e) {
+    return fail(e.message || 'Projects fetch error');
+  }
+}
+
+export async function fetchResumes() {
+  try {
+    const { getResumes } = await import('./platform.service.js');
+    return ok(await getResumes());
+  } catch (e) {
+    return fail(e.message || 'Resumes fetch error');
+  }
+}
+
+export async function fetchRecommendations(query = {}) {
+  try {
+    const { getRecommendations } = await import('./platform.service.js');
+    return ok(await getRecommendations(query));
+  } catch (e) {
+    return fail(e.message || 'Recommendations fetch error');
+  }
+}
+
+export async function fetchActivity(query = {}) {
+  try {
+    const { getActivity } = await import('./platform.service.js');
+    return ok(await getActivity(query));
+  } catch (e) {
+    return fail(e.message || 'Activity fetch error');
+  }
+}
+
+export async function fetchProfileCompletion() {
+  try {
+    const { getProfileCompletion } = await import('./platform.service.js');
+    return ok(await getProfileCompletion());
+  } catch (e) {
+    return fail(e.message || 'Profile completion fetch error');
   }
 }
 
@@ -130,7 +164,7 @@ function _saveReferrals(data) {
 
 export function getReferralCode() {
   const user = store.getUserSafe();
-  const id = user._id || 'demo';
+  const id = user._id || 'user';
   return 'SKILL-' + id.slice(-6).toUpperCase();
 }
 
@@ -165,9 +199,6 @@ export function simulateReferral(name) {
 // ═══════════════════════════════════════════
 
 export async function performLogin(email, password) {
-  if (isDemoMode()) {
-    return fail('Demo mode does not support login');
-  }
   try {
     const { login } = await import('./auth.service.js');
     return await login(email, password);
@@ -177,14 +208,20 @@ export async function performLogin(email, password) {
 }
 
 export async function performRegister(name, email, password) {
-  if (isDemoMode()) {
-    return fail('Demo mode does not support registration');
-  }
   try {
     const { register } = await import('./auth.service.js');
     return await register(name, email, password);
   } catch (e) {
     return fail(e.message || 'Registration failed');
+  }
+}
+
+export async function performGoogleLogin(credential) {
+  try {
+    const { googleLogin } = await import('./auth.service.js');
+    return await googleLogin(credential);
+  } catch (e) {
+    return fail(e.message || 'Google login failed');
   }
 }
 

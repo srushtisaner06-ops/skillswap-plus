@@ -5,9 +5,7 @@
 
 import { store } from '../state.js';
 import { showToast } from '../components/toast.js';
-import { fetchProfile, saveProfile, isDemoMode } from '../services/data.layer.js';
-
-const _isDemoMode = isDemoMode;
+import { fetchProfile, saveProfile, fetchProjects, fetchResumes, fetchProfileCompletion } from '../services/data.layer.js';
 
 // Color palette for badges — uses inline styles to avoid Tailwind purge issues
 const colorMap = {
@@ -59,11 +57,19 @@ export async function renderProfile(container) {
   if (profileRes.error) {
     showToast('Failed to load profile. Please try again.', 'error');
   }
+  const [projectsRes, resumesRes, completionRes] = await Promise.allSettled([
+    fetchProjects({ limit: 6 }),
+    fetchResumes(),
+    fetchProfileCompletion()
+  ]);
   user = store.getUserSafe();
 
   const credits = store.get('credits') || 0;
   const displayUser = user || store.getUserSafe();
   const avatar = displayUser?.avatar || 'https://ui-avatars.com/api/?name=User&background=6927ef&color=fff';
+  const projects = projectsRes.status === 'fulfilled' && !projectsRes.value.error ? projectsRes.value.data || [] : [];
+  const resumes = resumesRes.status === 'fulfilled' && !resumesRes.value.error ? resumesRes.value.data || [] : [];
+  const completion = completionRes.status === 'fulfilled' && !completionRes.value.error ? completionRes.value.data : null;
 
   // Determine which badges are earned vs locked
   const earnedBadgeNames = (displayUser?.badges || []).map(b => b?.name || '');
@@ -114,6 +120,32 @@ export async function renderProfile(container) {
             `).join('')}
           </div>
 
+          ${completion ? `
+            <div class="bg-white rounded-2xl p-8 border border-zinc-100 shadow-sm">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+                <div>
+                  <h3 class="text-lg font-black text-zinc-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">task_alt</span>
+                    Profile Completion
+                  </h3>
+                  <p class="text-xs text-zinc-400 mt-1">Calculated from profile, skills, resumes, and projects.</p>
+                </div>
+                <span class="text-3xl font-black text-primary">${completion.percentage || 0}%</span>
+              </div>
+              <div class="xp-bar mb-5">
+                <div class="xp-bar-fill" style="width: ${completion.percentage || 0}%"></div>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                ${Object.entries(completion.sections || {}).map(([name, value]) => `
+                  <div class="bg-zinc-50 rounded-xl border border-zinc-100 p-3">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-zinc-400">${name}</p>
+                    <p class="text-lg font-black text-zinc-900">${value}%</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
           <!-- Skills -->
           <div class="bg-white rounded-2xl p-8 border border-zinc-100 shadow-sm">
             <h3 class="text-lg font-black text-zinc-900 mb-6 flex items-center gap-2">
@@ -148,10 +180,64 @@ export async function renderProfile(container) {
             </h3>
             <p class="text-zinc-600 leading-relaxed">${displayUser.bio || 'No bio yet. Click "Edit Profile" to tell the community about yourself!'}</p>
           </div>
+          <div class="bg-white rounded-2xl p-8 border border-zinc-100 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-black text-zinc-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">work</span>
+                Projects & Resources
+              </h3>
+              <span class="text-xs font-black text-primary">${projects.length}</span>
+            </div>
+            ${projects.length > 0 ? `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${projects.slice(0, 4).map(item => `
+                  <a href="${item.url || '#/profile'}" class="block bg-zinc-50 rounded-xl border border-zinc-100 p-4 hover:bg-white hover:shadow-sm transition-all">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="material-symbols-outlined text-sm text-primary">${item.type === 'resource' ? 'library_books' : 'work'}</span>
+                      <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">${item.type || 'project'}</span>
+                    </div>
+                    <h4 class="font-black text-sm text-zinc-900 mb-1">${item.title}</h4>
+                    <p class="text-xs text-zinc-500 line-clamp-2">${item.description || 'No description added yet.'}</p>
+                  </a>
+                `).join('')}
+              </div>
+            ` : `
+              <div class="text-center py-8">
+                <span class="material-symbols-outlined text-3xl text-zinc-300 mb-2">work</span>
+                <p class="text-zinc-400 text-sm">No saved projects or resources yet.</p>
+              </div>
+            `}
+          </div>
         </div>
 
         <!-- Right Column -->
         <div class="space-y-6">
+          <div class="bg-white rounded-2xl p-8 border border-zinc-100 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-black text-zinc-900">Resumes</h3>
+              <span class="text-xs font-black text-primary">${resumes.length}</span>
+            </div>
+            <div class="space-y-3">
+              ${resumes.length > 0 ? resumes.slice(0, 3).map(resume => `
+                <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <p class="text-sm font-bold text-zinc-900">${resume.title}</p>
+                    ${resume.isPrimary ? '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">Primary</span>' : ''}
+                  </div>
+                  <p class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">${resume.targetRole || 'General profile'}</p>
+                  <div class="flex items-center justify-between mt-3">
+                    <span class="text-xs text-zinc-500">${resume.status || 'draft'}</span>
+                    <span class="text-sm font-black text-primary">${resume.score || 0}/100</span>
+                  </div>
+                </div>
+              `).join('') : `
+                <div class="text-center py-6">
+                  <span class="material-symbols-outlined text-3xl text-zinc-300 mb-2">description</span>
+                  <p class="text-zinc-400 text-xs">No resumes saved yet.</p>
+                </div>
+              `}
+            </div>
+          </div>
           <!-- Badges — Earned -->
           <div class="bg-white rounded-2xl p-8 border border-zinc-100 shadow-sm">
             <div class="flex items-center justify-between mb-6">

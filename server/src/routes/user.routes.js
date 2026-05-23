@@ -9,7 +9,7 @@ const { getProfile, updateProfile, getUserById, uploadProfilePicture } = require
 const { protect } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { updateProfileSchema } = require('../validators/user.validator');
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 // Protected routes
 router.get('/profile',  protect, getProfile);

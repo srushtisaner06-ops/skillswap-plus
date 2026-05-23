@@ -37,6 +37,11 @@ const sessionSchema = new mongoose.Schema(
       required: [true, 'Session date is required']
     },
 
+    scheduledAt: {
+      type: Date,
+      required: [true, 'Session scheduled time is required']
+    },
+
     startTime: {
       type: String,
       required: [true, 'Start time is required'],
@@ -51,7 +56,8 @@ const sessionSchema = new mongoose.Schema(
 
     duration: {
       type: Number, // in minutes
-      min: [15, 'Session must be at least 15 minutes']
+      min: [15, 'Session must be at least 15 minutes'],
+      max: [480, 'Session cannot exceed 8 hours']
     },
 
     creditsRequired: {
@@ -100,6 +106,12 @@ const sessionSchema = new mongoose.Schema(
       default: SESSION_STATUS.OPEN
     },
 
+    meetingUrl: {
+      type: String,
+      default: '',
+      trim: true
+    },
+
     tags: [{ type: String, trim: true }]
   },
   {
@@ -112,8 +124,12 @@ const sessionSchema = new mongoose.Schema(
 // ─── Indexes ───────────────────────────────
 
 sessionSchema.index({ host: 1, date: 1 });
+sessionSchema.index({ host: 1, scheduledAt: 1 });
 sessionSchema.index({ status: 1, date: 1 });
+sessionSchema.index({ status: 1, scheduledAt: 1 });
 sessionSchema.index({ skillCategory: 1 });
+sessionSchema.index({ title: 1 });
+sessionSchema.index({ tags: 1 });
 sessionSchema.index({ date: 1, startTime: 1, endTime: 1 });
 
 // ─── Virtual: participant count ────────────

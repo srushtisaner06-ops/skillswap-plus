@@ -1,0 +1,17 @@
+process.env.NODE_ENV = 'test';
+process.env.PORT = process.env.PORT || '5001';
+process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/skillswap_test?replicaSet=rs0';
+process.env.DB_CONNECT_RETRIES = '1';
+process.env.DB_CONNECT_RETRY_DELAY_MS = '100';
+process.env.REQUIRE_TRANSACTION_DB = process.env.REQUIRE_TRANSACTION_DB || 'true';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-with-enough-length-12345';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-with-enough-length-12345';
+process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
+process.env.JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+process.env.DEFAULT_CREDITS = process.env.DEFAULT_CREDITS || '10';
+process.env.UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
+process.env.CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+process.env.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+process.env.JITSI_BASE_URL = process.env.JITSI_BASE_URL || 'https://meet.jit.si';
+process.env.JITSI_ROOM_PREFIX = process.env.JITSI_ROOM_PREFIX || 'skillswap-test';
+process.env.JSON_LIMIT = process.env.JSON_LIMIT || '25kb';

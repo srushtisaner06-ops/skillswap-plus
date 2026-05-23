@@ -5,6 +5,16 @@
 const Joi = require('joi');
 const { SKILL_CATEGORIES } = require('../utils/constants');
 
+function minutesFromTime(time) {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function scheduledDateTime(date, time) {
+  const datePart = new Date(date).toISOString().split('T')[0];
+  return new Date(`${datePart}T${time}:00.000Z`);
+}
+
 const createSessionSchema = Joi.object({
   title: Joi.string().trim().min(3).max(100).required()
     .messages({
@@ -25,9 +35,8 @@ const createSessionSchema = Joi.object({
       'any.required': 'Skill category is required'
     }),
 
-  date: Joi.date().iso().min('now').required()
+  date: Joi.date().iso().required()
     .messages({
-      'date.min': 'Session date must be in the future',
       'any.required': 'Date is required'
     }),
 
@@ -52,7 +61,27 @@ const createSessionSchema = Joi.object({
 
   maxParticipants: Joi.number().integer().min(1).max(20).default(1),
 
-  tags: Joi.array().items(Joi.string().trim()).max(10).default([])
+  tags: Joi.array().items(Joi.string().trim().min(1).max(30)).max(10).default([])
+}).custom((value, helpers) => {
+  if (value.endTime <= value.startTime) {
+    return helpers.error('any.custom', { message: 'End time must be after start time' });
+  }
+
+  const duration = minutesFromTime(value.endTime) - minutesFromTime(value.startTime);
+  if (duration < 15) {
+    return helpers.error('any.custom', { message: 'Session must be at least 15 minutes' });
+  }
+  if (duration > 480) {
+    return helpers.error('any.custom', { message: 'Session cannot exceed 8 hours' });
+  }
+
+  if (scheduledDateTime(value.date, value.startTime) <= new Date()) {
+    return helpers.error('any.custom', { message: 'Session start time must be in the future' });
+  }
+
+  return value;
+}).messages({
+  'any.custom': '{{#message}}'
 });
 
 const respondRequestSchema = Joi.object({
@@ -76,7 +105,7 @@ const sessionQuerySchema = Joi.object({
   category: Joi.string().trim(),
   status: Joi.string().valid('open', 'full', 'completed', 'cancelled'),
   search: Joi.string().trim().max(100),
-  sortBy: Joi.string().valid('date', 'credits', 'createdAt').default('date'),
+  sortBy: Joi.string().valid('date', 'scheduledAt', 'credits', 'createdAt').default('date'),
   order: Joi.string().valid('asc', 'desc').default('asc')
 });
 

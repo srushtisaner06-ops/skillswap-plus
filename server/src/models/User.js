@@ -27,9 +27,22 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function() { return this.authProvider === 'local'; },
       minlength: [6, 'Password must be at least 6 characters'],
       select: false // Never return password in queries by default
+    },
+
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local'
+    },
+
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      default: undefined
     },
 
     bio: {
@@ -81,6 +94,51 @@ const userSchema = new mongoose.Schema(
       default: 'user'
     },
 
+    level: {
+      type: Number,
+      default: 1,
+      min: 1
+    },
+
+    xp: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    xpMax: {
+      type: Number,
+      default: 1000,
+      min: 1
+    },
+
+    tier: {
+      type: String,
+      default: 'Starter',
+      trim: true
+    },
+
+    streak: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    badges: [
+      {
+        name: { type: String, required: true, trim: true },
+        icon: { type: String, default: 'stars', trim: true },
+        color: { type: String, default: 'violet', trim: true }
+      }
+    ],
+
+    stats: {
+      sessionsTaught: { type: Number, default: 0, min: 0 },
+      sessionsAttended: { type: Number, default: 0, min: 0 },
+      creditsEarned: { type: Number, default: 0, min: 0 },
+      communityPosts: { type: Number, default: 0, min: 0 }
+    },
+
     refreshToken: {
       type: String,
       select: false
@@ -104,20 +162,16 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ 'skillsOffered.name': 1 });
 userSchema.index({ skillsWanted: 1 });
 userSchema.index({ rating: -1 });
+userSchema.index({ name: 1 });
 
 // ─── Pre-save: Hash password ───────────────
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   // Only hash if password is modified
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) return;
 
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // ─── Instance Methods ──────────────────────

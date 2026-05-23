@@ -40,6 +40,11 @@ const transactionSchema = new mongoose.Schema(
       ref: 'Session'
     },
 
+    relatedBooking: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Booking'
+    },
+
     relatedUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
@@ -54,6 +59,10 @@ const transactionSchema = new mongoose.Schema(
 
 transactionSchema.index({ user: 1, createdAt: -1 });
 transactionSchema.index({ relatedSession: 1 });
+transactionSchema.index({ relatedBooking: 1, type: 1, user: 1 }, {
+  unique: true,
+  partialFilterExpression: { relatedBooking: { $exists: true } }
+});
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 

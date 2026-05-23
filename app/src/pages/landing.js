@@ -3,7 +3,7 @@
    With real Login / Register form tabs
    ═══════════════════════════════════════════ */
 
-import { register, login, isAuthenticated } from '../services/auth.service.js';
+import { register, login, googleLogin, isAuthenticated } from '../services/auth.service.js';
 import { getProfile } from '../services/user.service.js';
 import { store } from '../state.js';
 import { showToast } from '../components/toast.js';
@@ -11,7 +11,7 @@ import { showToast } from '../components/toast.js';
 export function renderLanding(container) {
   // If already authenticated, redirect to dashboard
   if (isAuthenticated()) {
-    window.location.hash = '#/dashboard';
+    window.location.hash = '/dashboard';
     return;
   }
 
@@ -105,6 +105,10 @@ export function renderLanding(container) {
                   <label class="text-[10px] uppercase tracking-[0.1em] text-on-surface-variant font-black block mb-2 px-1">Password</label>
                   <input id="reg-password" class="w-full p-4 bg-surface-container-low/50 rounded-lg border border-transparent focus:border-primary/20 focus:bg-white transition-all outline-none" placeholder="Min 6 characters" type="password" required minlength="6" />
                 </div>
+                <div>
+                  <label class="text-[10px] uppercase tracking-[0.1em] text-on-surface-variant font-black block mb-2 px-1">Confirm Password</label>
+                  <input id="reg-confirm-password" class="w-full p-4 bg-surface-container-low/50 rounded-lg border border-transparent focus:border-primary/20 focus:bg-white transition-all outline-none" placeholder="Re-enter password" type="password" required minlength="6" />
+                </div>
                 <button type="submit" id="register-btn" class="w-full py-4 bg-primary text-white font-black text-lg rounded-full shadow-lg shadow-primary/30 mt-4 btn-press flex items-center justify-center gap-2">
                   Join Now
                 </button>
@@ -134,14 +138,14 @@ export function renderLanding(container) {
                 <div class="flex-1 h-px bg-zinc-200"></div>
               </div>
 
-              <!-- Demo Login -->
-              <button id="demo-login-btn" class="w-full py-4 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-black text-lg rounded-full shadow-lg shadow-violet-500/25 btn-press flex items-center justify-center gap-3 hover:shadow-xl hover:shadow-violet-500/30 transition-all">
-                <span class="material-symbols-outlined material-fill text-lg">rocket_launch</span>
-                Explore Demo
+              <!-- Google Sign-In -->
+              <button id="google-signin-btn" class="w-full py-4 bg-white text-zinc-700 font-bold text-base rounded-full shadow-md border border-zinc-200 btn-press flex items-center justify-center gap-3 hover:shadow-lg hover:bg-zinc-50 transition-all">
+                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Sign in with Google
               </button>
               <p class="text-[11px] text-center text-zinc-400 mt-3 flex items-center justify-center gap-1">
                 <span class="material-symbols-outlined text-emerald-500 text-xs">verified</span>
-                No signup needed — full access with sample data
+                Secure authentication powered by Google
               </p>
             </div>
           </div>
@@ -204,11 +208,11 @@ export function renderLanding(container) {
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           ${[
-            { skill1: 'UI/UX', skill2: 'Python', sessions: 12, badge: 'High Demand', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDs-lVDt5rC158mkldd5uNXuv0G3WHCZlYD8V_awMLT4g8_YSABNP5YtRUd-4BJhN9hCtT2OXM6S_sN9ZYmJ98hp2yBKoHRlxtfacVegQmg1LwzihSOUQIQfY-eqp4hPVUHvBudyLT9GvWZQBuuYMVzMxONvkJNho7y_KlJtxFROw1NFTvVy_ATBIRzBsJAid-zI9QgLDpLM0XvbpJjOI2b2zXUDzcztWN7zJJ963dgJMYvaNdpFjnp9Z2ay2lT4avU7m491OcE7w' },
-            { skill1: 'Fine Art', skill2: 'Marketing', sessions: 8, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC3oV0PjG1rUBLjWXHIH7gUt2rmuijvbK02trbgpbNcQN5LEJsJEorykL3J2tV5l8rcaqESWwdNL1Y5KRJK26F1bERjFw8Ma3JMf_wlDAXcPjAEsQqANorf8XMKm7NHYF6_m-QgIkeX0adlvKbLq8jLuNsLVxAf1IioC2T0kBoxGLodtzfV1-LvfrZKFolixtoIwcG_iucLc50lLYD83anI93t4yosTNB23xMa_eYw1y5vbVtwNtBDt3eyp6ZiP8vN3TvbMyIkwhQ' },
-            { skill1: 'SQL', skill2: 'Copywriting', sessions: 15, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCClHAiDZ6yvotw29PBVP20gW2n7hZrUCNjdLd4fBKcSIt8QlWjw9pfjQWV3UdyUEbpP_KnsrLzHHfef7ADnbnCmVBlzraob6JxVLdoQRnC0LlVKWo7U7W9AsmLeenXW0zuNrUcP9TymUqpyI2xuYPgLD0EwMVQOWnUaDV30NmZ16epcxgC8gMFHkjLI7I_tsdAID2F3wu5rq-kL07PzSaVSStVKWrWdRUl_efjkiNw84R4LBQAcxVtO92AQ-K4zEZOO14cSvUxkg' },
-            { skill1: 'Fitness', skill2: 'Finance', sessions: 21, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDymVAtYxaUiI0klvl3MrGaLz5Zga2zwZhJJAtKb4mkwsEmNJUncCB8rwXAVdhZj3BU1aY7ZxZIX0n2gW8zyPuVEL9vSbtpDH9q3bOy839VFlNU_wFuY4SMrWCvDjd-CM7ZVx10qd8gPetz1D4sa8rlm5ckUOVqgvWjg_lYrduZDEC8-yA2-7sCXd5jxRIWW_izUfRnw2j0Ma_Uj82aCYasuCl118OgkV8Uep39lT_7GAF3h44y49YYGdwt-vdeJpvHxfWZR_GXTA' }
-          ].map(card => `
+      { skill1: 'UI/UX', skill2: 'Python', sessions: 12, badge: 'High Demand', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDs-lVDt5rC158mkldd5uNXuv0G3WHCZlYD8V_awMLT4g8_YSABNP5YtRUd-4BJhN9hCtT2OXM6S_sN9ZYmJ98hp2yBKoHRlxtfacVegQmg1LwzihSOUQIQfY-eqp4hPVUHvBudyLT9GvWZQBuuYMVzMxONvkJNho7y_KlJtxFROw1NFTvVy_ATBIRzBsJAid-zI9QgLDpLM0XvbpJjOI2b2zXUDzcztWN7zJJ963dgJMYvaNdpFjnp9Z2ay2lT4avU7m491OcE7w' },
+      { skill1: 'Fine Art', skill2: 'Marketing', sessions: 8, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC3oV0PjG1rUBLjWXHIH7gUt2rmuijvbK02trbgpbNcQN5LEJsJEorykL3J2tV5l8rcaqESWwdNL1Y5KRJK26F1bERjFw8Ma3JMf_wlDAXcPjAEsQqANorf8XMKm7NHYF6_m-QgIkeX0adlvKbLq8jLuNsLVxAf1IioC2T0kBoxGLodtzfV1-LvfrZKFolixtoIwcG_iucLc50lLYD83anI93t4yosTNB23xMa_eYw1y5vbVtwNtBDt3eyp6ZiP8vN3TvbMyIkwhQ' },
+      { skill1: 'SQL', skill2: 'Copywriting', sessions: 15, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCClHAiDZ6yvotw29PBVP20gW2n7hZrUCNjdLd4fBKcSIt8QlWjw9pfjQWV3UdyUEbpP_KnsrLzHHfef7ADnbnCmVBlzraob6JxVLdoQRnC0LlVKWo7U7W9AsmLeenXW0zuNrUcP9TymUqpyI2xuYPgLD0EwMVQOWnUaDV30NmZ16epcxgC8gMFHkjLI7I_tsdAID2F3wu5rq-kL07PzSaVSStVKWrWdRUl_efjkiNw84R4LBQAcxVtO92AQ-K4zEZOO14cSvUxkg' },
+      { skill1: 'Fitness', skill2: 'Finance', sessions: 21, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDymVAtYxaUiI0klvl3MrGaLz5Zga2zwZhJJAtKb4mkwsEmNJUncCB8rwXAVdhZj3BU1aY7ZxZIX0n2gW8zyPuVEL9vSbtpDH9q3bOy839VFlNU_wFuY4SMrWCvDjd-CM7ZVx10qd8gPetz1D4sa8rlm5ckUOVqgvWjg_lYrduZDEC8-yA2-7sCXd5jxRIWW_izUfRnw2j0Ma_Uj82aCYasuCl118OgkV8Uep39lT_7GAF3h44y49YYGdwt-vdeJpvHxfWZR_GXTA' }
+    ].map(card => `
             <div class="group relative aspect-[4/5] overflow-hidden rounded-3xl bg-surface-container shadow-lg card-hover">
               <img class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80" src="${card.img}" alt="${card.skill1} exchange" />
               <div class="absolute inset-0 bg-gradient-to-t from-on-surface via-on-surface/40 to-transparent"></div>
@@ -231,10 +235,10 @@ export function renderLanding(container) {
         </div>
         <div class="flex gap-8 px-8 overflow-x-auto no-scrollbar pb-12 snap-x">
           ${[
-            { name: 'Sarah Chen', role: 'Product Designer', quote: '"SkillSwap+ allowed me to trade my design mentorship for high-level Python lessons. It\'s the most frictionless learning experience I\'ve ever had."', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmsNl-IUnPO981prGkehS44Gq8wXNSLqFm_zuCrMly0-40i_b8_yspbo6W7SLQ80zLVTvfa58Bkvy6MVGG9Kdgupe6jbiKff6gW9QudyvUu4dsCqp6V8uhyfvdMLQfmw2xAurorTY5fUljFdAP_XE6lRrDJqVh8PDfrDxp9usw9l08q66-lpP8WMgWxBbQ5BIbMrjyqpziYsS2aV5YKef24I4ZKLIomNh_dliV0zCIBhXra92jpSFB8JwCqtZHyGotODEu1HO8Rw' },
-            { name: 'Marcus Thorne', role: 'Full-stack Dev', quote: '"The quality of masters here is insane. I learned more about public speaking in two swaps than I did in a full college semester."', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTK6FnIAvdLPGSb0rsoNtz5XhqoJ-UiJuCyVjtiJyxM0dze2oG5xWjiKlF_DK0uZpk9JzathC0ElD4pri5EPwE2DpiPietdTEPmBlsEak-ME0e0aFnY2cN4ZQbJ65DBNzeYFgpxDrmKULXv-87JoVzXvMtf4zGp3eP2pyZW6bWA1a8VQljFPwlcac-XJ3DvEkYfNNFQA-tuFSH1yzBeIvCeVMA-vOZCaQncWv9pmrCLRayky9pFtrFWsgJOADniPNS7-FvEvJFlA' },
-            { name: 'Elena Rodriguez', role: 'Marketing Lead', quote: '"Finally, a platform that values expertise as a currency. The community is supportive and the UX is just stunning."', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBC_g91qBz6t9Mg-6GlLrsCqjZiIBSDoaecFdazAlQJCIdXXtVlTOhLcAv2qVzj6CF_YIQ2mCc1i8cZKkczkKXoBeOJl2xsF6bvIb_f6vDZ-taFHEGh1i8zPIYeweIQkweCVUcyem61A7tFSVaGSTN6sP6Ig4U0rZ68Vhx5EjhrWfmO3aH-gATtOBFh15HbRKCYu_tiU8lXDOXmVFauRdiSF_hf19XSKJzVYmkS2Dfd4BwrzSjy9L1iSP_xFZMOaF7Eb4l2WZCPHQ' }
-          ].map(t => `
+      { name: 'Sarah Chen', role: 'Product Designer', quote: '"SkillSwap+ allowed me to trade my design mentorship for high-level Python lessons. It\'s the most frictionless learning experience I\'ve ever had."', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmsNl-IUnPO981prGkehS44Gq8wXNSLqFm_zuCrMly0-40i_b8_yspbo6W7SLQ80zLVTvfa58Bkvy6MVGG9Kdgupe6jbiKff6gW9QudyvUu4dsCqp6V8uhyfvdMLQfmw2xAurorTY5fUljFdAP_XE6lRrDJqVh8PDfrDxp9usw9l08q66-lpP8WMgWxBbQ5BIbMrjyqpziYsS2aV5YKef24I4ZKLIomNh_dliV0zCIBhXra92jpSFB8JwCqtZHyGotODEu1HO8Rw' },
+      { name: 'Marcus Thorne', role: 'Full-stack Dev', quote: '"The quality of masters here is insane. I learned more about public speaking in two swaps than I did in a full college semester."', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTK6FnIAvdLPGSb0rsoNtz5XhqoJ-UiJuCyVjtiJyxM0dze2oG5xWjiKlF_DK0uZpk9JzathC0ElD4pri5EPwE2DpiPietdTEPmBlsEak-ME0e0aFnY2cN4ZQbJ65DBNzeYFgpxDrmKULXv-87JoVzXvMtf4zGp3eP2pyZW6bWA1a8VQljFPwlcac-XJ3DvEkYfNNFQA-tuFSH1yzBeIvCeVMA-vOZCaQncWv9pmrCLRayky9pFtrFWsgJOADniPNS7-FvEvJFlA' },
+      { name: 'Elena Rodriguez', role: 'Marketing Lead', quote: '"Finally, a platform that values expertise as a currency. The community is supportive and the UX is just stunning."', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBC_g91qBz6t9Mg-6GlLrsCqjZiIBSDoaecFdazAlQJCIdXXtVlTOhLcAv2qVzj6CF_YIQ2mCc1i8cZKkczkKXoBeOJl2xsF6bvIb_f6vDZ-taFHEGh1i8zPIYeweIQkweCVUcyem61A7tFSVaGSTN6sP6Ig4U0rZ68Vhx5EjhrWfmO3aH-gATtOBFh15HbRKCYu_tiU8lXDOXmVFauRdiSF_hf19XSKJzVYmkS2Dfd4BwrzSjy9L1iSP_xFZMOaF7Eb4l2WZCPHQ' }
+    ].map(t => `
             <div class="min-w-[450px] bg-white p-10 rounded-3xl snap-center border border-surface-variant/10 shadow-sm">
               <div class="flex items-center gap-5 mb-8">
                 <img class="w-16 h-16 rounded-full object-cover ring-4 ring-primary/5" src="${t.img}" alt="${t.name}" />
@@ -325,114 +329,51 @@ export function renderLanding(container) {
   document.getElementById('nav-get-started')?.addEventListener('click', scrollToForm);
   document.getElementById('hero-get-started')?.addEventListener('click', scrollToForm);
 
-  // ─── Demo Login Handler ──────────────────
-  document.getElementById('demo-login-btn')?.addEventListener('click', () => {
-    const btn = document.getElementById('demo-login-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">refresh</span> Loading demo...';
+  // ─── Google Sign-In Handler ────────────────
+  document.getElementById('google-signin-btn')?.addEventListener('click', () => {
+    const btn = document.getElementById('google-signin-btn');
 
-    // Simulate a short loading delay for polish
-    setTimeout(() => {
-      // Set a fake token so isAuthenticated() returns true
-      localStorage.setItem('token', 'demo-token');
-      localStorage.setItem('demo_mode', 'true');
+    // Check if Google Identity Services is loaded
+    if (typeof google === 'undefined' || !google.accounts) {
+      showToast('Google Sign-In is loading. Please try again in a moment.', 'error');
+      return;
+    }
 
-      // Populate state with rich demo data
-      store.setUserFromAPI({
-        _id: 'demo-user-001',
-        name: 'Alex Rivera',
-        email: 'alex@skillswap.plus',
-        role: 'mentor',
-        bio: 'Full-stack developer with a passion for teaching React and UI design. Let\'s learn together!',
-        profilePicture: 'https://ui-avatars.com/api/?name=Alex+Rivera&background=6927ef&color=fff&size=256',
-        skillsOffered: [
-          { name: 'UI/UX Design', level: 92 },
-          { name: 'React', level: 85 },
-          { name: 'Python', level: 78 },
-          { name: 'Public Speaking', level: 65 },
-          { name: 'Three.js', level: 45 }
-        ],
-        skillsWanted: ['Machine Learning', 'Rust', 'Photography'],
-        rating: 4.8,
-        ratingCount: 12,
-        credits: 250,
-        level: 4,
-        xp: 750,
-        xpMax: 1000,
-        tier: 'Elite',
-        streak: 5,
-        badges: [
-          { name: 'Quick Learner', icon: 'bolt', color: 'violet' },
-          { name: 'Community Contributor', icon: 'volunteer_activism', color: 'emerald' },
-          { name: 'Python Master', icon: 'code', color: 'sky' }
-        ],
-        stats: {
-          sessionsTaught: 28,
-          sessionsAttended: 42,
-          creditsEarned: 680,
-          communityPosts: 15
+    // Initialize and prompt Google One Tap / popup
+    google.accounts.id.initialize({
+      client_id: window.__GOOGLE_CLIENT_ID || '',
+      callback: async (response) => {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">refresh</span> Signing in...';
+
+        try {
+          const result = await googleLogin(response.credential);
+          if (result?.error) throw new Error(result.error);
+
+          const profile = await getProfile();
+          store.setUserFromAPI(profile);
+
+          showToast('Welcome to SkillSwap+! 🎉', 'success');
+          window.location.hash = '/dashboard';
+        } catch (err) {
+          showToast(err.message || 'Google sign-in failed. Please try again.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Sign in with Google';
         }
-      });
+      }
+    });
 
-      // Add demo sessions
-      store.set('sessions', [
-        {
-          _id: 's1',
-          mentor: 'Dr. Sarah Chen',
-          mentorAvatar: 'https://ui-avatars.com/api/?name=Sarah+Chen&background=10b981&color=fff',
-          title: 'Advanced Prompt Engineering',
-          date: '2026-04-15',
-          time: '15:00',
-          endTime: '16:30',
-          credits: 12,
-          status: 'upcoming'
-        },
-        {
-          _id: 's2',
-          mentor: 'Marcus Thorne',
-          mentorAvatar: 'https://ui-avatars.com/api/?name=Marcus+Thorne&background=3b82f6&color=fff',
-          title: 'React Performance Mastery',
-          date: '2026-04-18',
-          time: '10:00',
-          endTime: '11:30',
-          credits: 8,
-          status: 'upcoming'
-        }
-      ]);
-
-      // Add demo notifications
-      store.set('notifications', [
-        { _id: 'n1', type: 'badge', message: 'Your "Python Master" badge is now public.', time: '2 hours ago', icon: 'stars', color: 'violet' },
-        { _id: 'n2', type: 'message', message: 'Marco requested a swap for "UX Copywriting".', time: '5 hours ago', icon: 'chat_bubble', color: 'sky' },
-        { _id: 'n3', type: 'system', message: 'System bonus: 5-day streak! +10 credits.', time: '1 day ago', icon: 'celebration', color: 'amber' }
-      ]);
-
-      // Add demo assignments
-      store.set('assignments', [
-        {
-          id: 'a1', sessionTitle: 'Advanced Prompt Engineering',
-          title: 'Build a Custom GPT Prompt Chain',
-          description: 'Create a 3-step prompt chain for content generation using the techniques covered in the session.',
-          dueDate: '2026-04-20', status: 'pending'
-        },
-        {
-          id: 'a2', sessionTitle: 'React Performance Mastery',
-          title: 'Optimize a Dashboard Component',
-          description: 'Apply memoization and code splitting to the provided dashboard component to reduce render time by 50%.',
-          dueDate: '2026-04-22', status: 'pending'
-        },
-        {
-          id: 'a3', sessionTitle: 'UI/UX Fundamentals',
-          title: 'Redesign a Mobile Checkout Flow',
-          description: 'Apply heuristic evaluation principles to redesign the checkout flow of an e-commerce app.',
-          dueDate: '2026-04-10', status: 'reviewed', grade: 'A',
-          feedback: 'Excellent work! Clean information hierarchy and great use of progressive disclosure.'
-        }
-      ]);
-
-      showToast('Welcome to SkillSwap+ Demo, Alex! 🚀', 'success');
-      window.location.hash = '#/dashboard';
-    }, 600);
+    google.accounts.id.prompt((notification) => {
+      // If One Tap is dismissed or not available, show popup
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        google.accounts.oauth2.initCodeClient({
+          client_id: window.__GOOGLE_CLIENT_ID || '',
+          scope: 'email profile',
+          ux_mode: 'popup',
+          callback: () => { }
+        });
+      }
+    });
   });
 
   // ─── Register Handler ─────────────────────
@@ -441,6 +382,13 @@ export function renderLanding(container) {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
+    const confirmPassword = document.getElementById('reg-confirm-password').value;
+
+    // Client-side password confirmation
+    if (password !== confirmPassword) {
+      showToast('Passwords do not match.', 'error');
+      return;
+    }
 
     const btn = document.getElementById('register-btn');
     btn.disabled = true;
@@ -449,12 +397,12 @@ export function renderLanding(container) {
     try {
       const regRes = await register(name, email, password);
       if (regRes?.error) throw new Error(regRes.error);
-      
+
       const profile = await getProfile();
       store.setUserFromAPI(profile);
 
       showToast(`Welcome to SkillSwap+, ${name}! 🎉`, 'success');
-      window.location.hash = '#/dashboard';
+      window.location.hash = '/dashboard';
     } catch (err) {
       showToast(err.message || 'Registration failed. Please try again.', 'error');
       btn.disabled = false;
@@ -475,12 +423,12 @@ export function renderLanding(container) {
     try {
       const loginRes = await login(email, password);
       if (loginRes?.error) throw new Error(loginRes.error);
-      
+
       const profile = await getProfile();
       store.setUserFromAPI(profile);
 
       showToast('Welcome back! 👋', 'success');
-      window.location.hash = '#/dashboard';
+      window.location.hash = '/dashboard';
     } catch (err) {
       showToast(err.message || 'Invalid credentials. Please try again.', 'error');
       btn.disabled = false;

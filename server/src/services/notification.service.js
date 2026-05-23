@@ -7,14 +7,15 @@ const Notification = require('../models/Notification');
 /**
  * Create a notification for a user.
  */
-const createNotification = async (userId, type, message, icon = 'info', color = 'violet', link = '') => {
+const createNotification = async (userId, type, message, icon = 'info', color = 'violet', link = '', metadata = {}) => {
   const notification = await Notification.create({
     user: userId,
     type,
     message,
     icon,
     color,
-    link
+    link,
+    metadata
   });
 
   return notification;
@@ -23,16 +24,23 @@ const createNotification = async (userId, type, message, icon = 'info', color = 
 /**
  * Get paginated notifications for a user.
  */
-const getUserNotifications = async (userId, page = 1, limit = 20) => {
+const getUserNotifications = async (userId, options = {}) => {
+  const page = Math.max(Number(options.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(options.limit) || 20, 1), 50);
   const skip = (page - 1) * limit;
+  const filter = { user: userId };
+
+  if (options.unreadOnly) {
+    filter.read = false;
+  }
 
   const [notifications, total, unreadCount] = await Promise.all([
-    Notification.find({ user: userId })
+    Notification.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    Notification.countDocuments({ user: userId }),
+    Notification.countDocuments(filter),
     Notification.countDocuments({ user: userId, read: false })
   ]);
 
@@ -64,15 +72,20 @@ const markAsRead = async (notificationId, userId) => {
  * Mark all notifications as read for a user.
  */
 const markAllAsRead = async (userId) => {
-  await Notification.updateMany(
+  return Notification.updateMany(
     { user: userId, read: false },
     { read: true }
   );
+};
+
+const getUnreadCount = async (userId) => {
+  return Notification.countDocuments({ user: userId, read: false });
 };
 
 module.exports = {
   createNotification,
   getUserNotifications,
   markAsRead,
-  markAllAsRead
+  markAllAsRead,
+  getUnreadCount
 };

@@ -11,7 +11,8 @@ import api from './api.js';
  */
 export async function createSession(data) {
   const res = await api.post('/sessions', data);
-  return res.data.session;
+  if (res.error) throw new Error(res.message);
+  return res.data?.data?.session || null;
 }
 
 /**
@@ -27,7 +28,8 @@ export async function getSessions(query = {}) {
   });
   const qs = params.toString();
   const res = await api.get(`/sessions${qs ? '?' + qs : ''}`);
-  return res.data;
+  if (res.error) return { sessions: [], total: 0, page: 1, pages: 1 };
+  return res.data?.data || { sessions: [], total: 0, page: 1, pages: 1 };
 }
 
 /**
@@ -36,7 +38,8 @@ export async function getSessions(query = {}) {
  */
 export async function getMySessions() {
   const res = await api.get('/sessions/mine');
-  return res.data;
+  if (res.error) return { hosting: [], attending: [] };
+  return res.data?.data || { hosting: [], attending: [] };
 }
 
 /**
@@ -44,7 +47,8 @@ export async function getMySessions() {
  */
 export async function getSessionById(id) {
   const res = await api.get(`/sessions/${id}`);
-  return res.data.session;
+  if (res.error) return null;
+  return res.data?.data?.session || null;
 }
 
 /**
@@ -52,7 +56,8 @@ export async function getSessionById(id) {
  */
 export async function requestToJoin(id) {
   const res = await api.post(`/sessions/${id}/request`, {});
-  return res.data;
+  if (res.error) throw new Error(res.message);
+  return res.data?.data || res.data;
 }
 
 /**
@@ -63,7 +68,8 @@ export async function requestToJoin(id) {
  */
 export async function respondToRequest(sessionId, userId, action) {
   const res = await api.post(`/sessions/${sessionId}/respond`, { userId, action });
-  return res.data;
+  if (res.error) throw new Error(res.message);
+  return res.data?.data || res.data;
 }
 
 /**
@@ -71,5 +77,7 @@ export async function respondToRequest(sessionId, userId, action) {
  */
 export async function completeSession(id) {
   const res = await api.patch(`/sessions/${id}/complete`, {});
-  return res.data;
+  if (res.error) throw new Error(res.message);
+  return res.data?.data || res.data;
 }
+

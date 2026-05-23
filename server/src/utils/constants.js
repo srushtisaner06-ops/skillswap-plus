@@ -39,7 +39,16 @@ module.exports = {
     SESSION: 'session',
     CREDIT: 'credit',
     REVIEW: 'review',
-    SYSTEM: 'system'
+    COMMUNITY: 'community',
+    SYSTEM: 'system',
+    BOOKING_REQUESTED: 'booking_requested',
+    BOOKING_ACCEPTED: 'booking_accepted',
+    BOOKING_COMPLETED: 'booking_completed',
+    CREDITS_RELEASED: 'credits_released',
+    MENTOR_APPLICATION_UPDATE: 'mentor_application_update',
+    REVIEW_RECEIVED: 'review_received',
+    REFERRAL_REWARD: 'referral_reward',
+    ASSIGNMENT_UPDATE: 'assignment_update'
   },
 
   // Skill categories

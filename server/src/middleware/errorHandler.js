@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════ */
 
 const env = require('../config/env');
+const { logSecurityEvent } = require('../utils/security');
 
 /**
  * Handle Mongoose CastError (invalid ObjectId).
@@ -51,6 +52,28 @@ const handleJWTExpired = () => ({
   message: 'Your token has expired. Please log in again.'
 });
 
+const handleMulterError = (err) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return { statusCode: 400, status: 'fail', message: 'Uploaded file is too large.' };
+  }
+  if (err.code === 'LIMIT_FILE_COUNT') {
+    return { statusCode: 400, status: 'fail', message: 'Only one file may be uploaded.' };
+  }
+  return { statusCode: 400, status: 'fail', message: 'Invalid file upload.' };
+};
+
+const handlePayloadTooLarge = () => ({
+  statusCode: 413,
+  status: 'fail',
+  message: 'Request payload is too large.'
+});
+
+const handleMalformedJson = () => ({
+  statusCode: 400,
+  status: 'fail',
+  message: 'Malformed JSON request body.'
+});
+
 // ─── Main Error Handler ────────────────────
 
 const errorHandler = (err, req, res, next) => {
@@ -94,27 +117,54 @@ const errorHandler = (err, req, res, next) => {
     message = handled.message;
   }
 
+  if (err.name === 'MulterError') {
+    const handled = handleMulterError(err);
+    statusCode = handled.statusCode;
+    status = handled.status;
+    message = handled.message;
+  }
+
+  if (err.type === 'entity.too.large') {
+    const handled = handlePayloadTooLarge();
+    statusCode = handled.statusCode;
+    status = handled.status;
+    message = handled.message;
+  }
+
+  if (err.type === 'entity.parse.failed') {
+    const handled = handleMalformedJson();
+    statusCode = handled.statusCode;
+    status = handled.status;
+    message = handled.message;
+  }
+
+  if (statusCode === 401 || statusCode === 403 || statusCode === 429) {
+    logSecurityEvent('request.rejected', req, { statusCode, reason: message });
+  }
+
   // Development: send full error
   if (env.NODE_ENV === 'development') {
     console.error('🔴 ERROR:', err);
     return res.status(statusCode).json({
       status,
       message,
+      requestId: req.id,
       error: err,
       stack: err.stack
     });
   }
 
   // Production: send clean error
-  if (err.isOperational) {
-    return res.status(statusCode).json({ status, message });
+  if (err.isOperational || statusCode < 500) {
+    return res.status(statusCode).json({ status, message, requestId: req.id });
   }
 
   // Unknown errors in production — don't leak details
   console.error('🔴 UNEXPECTED ERROR:', err);
   return res.status(500).json({
     status: 'error',
-    message: 'Something went wrong. Please try again later.'
+    message: 'Something went wrong. Please try again later.',
+    requestId: req.id
   });
 };
 

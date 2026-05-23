@@ -22,12 +22,6 @@ const registerSchema = Joi.object({
     .messages({
       'string.min': 'Password must be at least 6 characters',
       'any.required': 'Password is required'
-    }),
-
-  confirmPassword: Joi.string().valid(Joi.ref('password')).required()
-    .messages({
-      'any.only': 'Passwords do not match',
-      'any.required': 'Please confirm your password'
     })
 });
 
@@ -45,10 +39,7 @@ const loginSchema = Joi.object({
 });
 
 const refreshSchema = Joi.object({
-  refreshToken: Joi.string().required()
-    .messages({
-      'any.required': 'Refresh token is required'
-    })
+  refreshToken: Joi.string().min(20).optional()
 });
 
 module.exports = { registerSchema, loginSchema, refreshSchema };

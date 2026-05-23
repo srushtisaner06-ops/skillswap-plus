@@ -4,7 +4,50 @@
 
 /* ─── Base ─────────────────────────────────── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', sans-serif; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+img, svg, video, canvas { max-width: 100%; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, a, input, select, textarea, [tabindex]:not([tabindex="-1"]) {
+  outline-offset: 3px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 3px solid rgba(80, 0, 200, 0.32);
+  box-shadow: 0 0 0 5px rgba(80, 0, 200, 0.08);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 500;
+  transform: translateY(-150%);
+  background: #1c1b1b;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition: transform 160ms ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
 
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined', sans-serif;
@@ -32,8 +75,13 @@ body { font-family: 'Inter', sans-serif; }
   -webkit-backdrop-filter: blur(4px);
   animation: fadeIn 200ms ease-out;
 }
+.modal-backdrop[aria-hidden="true"] {
+  pointer-events: none;
+}
 .modal-content {
   animation: modalIn 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: min(90vh, 44rem);
+  overflow-y: auto;
 }
 @keyframes modalIn {
   from { opacity: 0; transform: scale(0.9) translateY(10px); }
@@ -118,6 +166,21 @@ body { font-family: 'Inter', sans-serif; }
   color: #6927ef;
   font-weight: 600;
   background: rgba(255,255,255,0.5);
+}
+
+.mobile-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(28, 27, 27, 0.36);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+.mobile-sidebar-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* ─── Cards ────────────────────────────────── */
@@ -253,4 +316,97 @@ body { font-family: 'Inter', sans-serif; }
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+@media (max-width: 1023px) {
+  #persistent-header {
+    margin-left: 0 !important;
+    padding: 0.75rem 1rem !important;
+    gap: 0.75rem;
+  }
+
+  #page-content {
+    margin-left: 0 !important;
+  }
+
+  #app-sidebar {
+    width: min(18rem, calc(100vw - 2rem));
+    transition: transform 220ms ease;
+  }
+}
+
+@media (max-width: 767px) {
+  #persistent-header {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  #global-search-root {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  #global-search-dropdown,
+  #notification-panel {
+    position: fixed !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    top: 7.25rem !important;
+    width: auto !important;
+    max-height: calc(100vh - 8.5rem);
+  }
+
+  #page-content > div {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 4rem !important;
+  }
+
+  #page-content .grid {
+    gap: 1rem;
+  }
+
+  #page-content .grid-cols-12 > * {
+    grid-column: span 12 / span 12;
+  }
+
+  #page-content h1 {
+    font-size: clamp(2rem, 12vw, 3rem);
+    line-height: 1;
+  }
+
+  #page-content h2 {
+    font-size: clamp(1.75rem, 10vw, 2.5rem);
+    line-height: 1.08;
+  }
+
+  #page-content .rounded-3xl {
+    border-radius: 1.25rem;
+  }
+
+  #toast-container {
+    left: 1rem;
+    right: 1rem;
+    top: 1rem;
+  }
+
+  .toast-enter,
+  .toast-exit {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: 100%;
+  }
+
+  .modal-backdrop > .flex {
+    align-items: flex-end;
+    padding: 0.75rem;
+  }
+
+  .modal-content {
+    border-radius: 1.25rem;
+    padding: 1.25rem !important;
+    max-height: 88vh;
+  }
 }

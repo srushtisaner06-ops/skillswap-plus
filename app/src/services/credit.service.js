@@ -11,7 +11,8 @@ import api from './api.js';
  */
 export async function getCredits() {
   const res = await api.get('/credits');
-  return res.data;
+  if (res.error) return { credits: 0 };
+  return res.data?.data || { credits: 0 };
 }
 
 /**
@@ -20,5 +21,8 @@ export async function getCredits() {
  */
 export async function getTransactions() {
   const res = await api.get('/credits/transactions');
-  return res.data.transactions || res.data || [];
+  if (res.error) return [];
+  const payload = res.data?.data;
+  return payload?.transactions || (Array.isArray(payload) ? payload : []);
 }
+

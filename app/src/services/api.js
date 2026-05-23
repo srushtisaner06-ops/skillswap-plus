@@ -3,7 +3,26 @@
    Reusable fetch wrapper with auth & error handling
    ═══════════════════════════════════════════ */
 
-const API_BASE = '/api';
+const configuredApiBase = import.meta.env?.VITE_API_URL?.trim();
+const API_BASE = (configuredApiBase || '/api').replace(/\/$/, '');
+const REQUEST_TIMEOUT_MS = 15000;
+
+function createRequestSignal(externalSignal) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    controller.abort(new DOMException('Request timed out', 'TimeoutError'));
+  }, REQUEST_TIMEOUT_MS);
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort(externalSignal.reason);
+    } else {
+      externalSignal.addEventListener('abort', () => controller.abort(externalSignal.reason), { once: true });
+    }
+  }
+
+  return { signal: controller.signal, timeoutId };
+}
 
 /**
  * Core fetch wrapper.
@@ -14,6 +33,7 @@ const API_BASE = '/api';
  */
 async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('token');
+  const { signal, timeoutId } = createRequestSignal(options.signal);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -27,7 +47,9 @@ async function apiFetch(endpoint, options = {}) {
 
   const config = {
     ...options,
-    headers
+    headers,
+    credentials: 'include',
+    signal
   };
 
   // If body is an object, stringify it
@@ -36,11 +58,37 @@ async function apiFetch(endpoint, options = {}) {
   }
 
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, config);
+    let response = await fetch(`${API_BASE}${endpoint}`, config);
 
     // Handle 401 — token expired or invalid
+    if (response.status === 401 && !endpoint.startsWith('/auth/')) {
+      try {
+        const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({}),
+          signal
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json().catch(() => null);
+          const accessToken = refreshData?.data?.accessToken;
+          if (accessToken) {
+            localStorage.setItem('token', accessToken);
+            config.headers.Authorization = `Bearer ${accessToken}`;
+            response = await fetch(`${API_BASE}${endpoint}`, config);
+          }
+        }
+      } catch (refreshError) {
+        if (refreshError?.name === 'AbortError') throw refreshError;
+        console.warn('[API] Token refresh failed:', refreshError);
+      }
+    }
+
     if (response.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       window.location.hash = '/';
       return { data: null, error: true, status: 401, message: 'Session expired. Please log in again.' };
     }
@@ -58,9 +106,17 @@ async function apiFetch(endpoint, options = {}) {
     // Return safely structured success
     return { data, error: false, status: response.status, message: 'Success' };
   } catch (error) {
+    if (error?.name === 'AbortError' && options.signal?.aborted) {
+      throw error;
+    }
+    const message = error?.name === 'AbortError' || error?.name === 'TimeoutError'
+      ? 'Request timed out. Please try again.'
+      : 'Network error. Please check your connection.';
     console.error(`[API] Fatal Network Error on ${endpoint}:`, error);
     // Return absolutely safe null object on complete network failure
-    return { data: null, error: true, status: 0, message: 'Network error. Please check your connection.' };
+    return { data: null, error: true, status: 0, message };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
@@ -79,10 +135,10 @@ class ApiError extends Error {
 /* ─── Convenience Methods ────────────────── */
 
 const api = {
-  get:    (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: 'GET' }),
-  post:   (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'POST', body }),
-  put:    (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'PUT', body }),
-  patch:  (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'PATCH', body }),
+  get: (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: 'GET' }),
+  post: (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'POST', body }),
+  put: (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'PUT', body }),
+  patch: (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'PATCH', body }),
   delete: (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: 'DELETE' })
 };
 

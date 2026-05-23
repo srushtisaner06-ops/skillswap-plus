@@ -1,39 +1,27 @@
-/* ═══════════════════════════════════════════
-   Multer File Upload Configuration
-   ═══════════════════════════════════════════ */
-
 const multer = require('multer');
-const path = require('path');
 const AppError = require('../utils/AppError');
+const env = require('../config/env');
 
-// Storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', '..', 'uploads'));
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const uniqueName = `user-${req.user._id}-${Date.now()}${ext}`;
-    cb(null, uniqueName);
-  }
-});
+const allowedTypes = new Map([
+  ['image/jpeg', '.jpg'],
+  ['image/png', '.png'],
+  ['image/webp', '.webp']
+]);
 
-// File filter — only images
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Only .jpg, .png, and .webp images are allowed.', 400), false);
+  if (allowedTypes.has(file.mimetype)) {
+    return cb(null, true);
   }
+  return cb(new AppError('Only .jpg, .png, and .webp images are allowed.', 400), false);
 };
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max
+    fileSize: env.UPLOAD_MAX_BYTES,
+    files: 1
   }
 });
 
-module.exports = upload;
+module.exports = { upload, allowedTypes };

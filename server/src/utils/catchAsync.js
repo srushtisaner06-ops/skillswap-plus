@@ -5,7 +5,13 @@
 
 const catchAsync = (fn) => {
   return (req, res, next) => {
-    fn(req, res, next).catch(next);
+    const forwardError = typeof next === 'function'
+      ? next
+      : (err) => {
+          throw err;
+        };
+
+    Promise.resolve(fn(req, res, forwardError)).catch(forwardError);
   };
 };
 

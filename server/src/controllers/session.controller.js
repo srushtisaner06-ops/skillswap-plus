@@ -11,6 +11,11 @@ const { createNotification } = require('../services/notification.service');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 
+function buildScheduledAt(date, startTime) {
+  const datePart = new Date(date).toISOString().split('T')[0];
+  return new Date(`${datePart}T${startTime}:00.000Z`);
+}
+
 /**
  * POST /api/sessions
  * Create a new skill session (as teacher/host).
@@ -34,6 +39,9 @@ const createSession = catchAsync(async (req, res, next) => {
 
   // Calculate duration
   const duration = sessionService.calculateDuration(startTime, endTime);
+  if (duration < 15 || duration > 480) {
+    return next(new AppError('Session duration must be between 15 minutes and 8 hours.', 400));
+  }
 
   const session = await Session.create({
     title,
@@ -41,6 +49,7 @@ const createSession = catchAsync(async (req, res, next) => {
     skillCategory,
     host: req.user._id,
     date,
+    scheduledAt: buildScheduledAt(date, startTime),
     startTime,
     endTime,
     duration,

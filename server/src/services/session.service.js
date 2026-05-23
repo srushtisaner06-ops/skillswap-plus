@@ -63,7 +63,8 @@ const getFilteredSessions = async (query) => {
   }
 
   const sort = {};
-  sort[sortBy] = order === 'desc' ? -1 : 1;
+  const sortField = sortBy === 'credits' ? 'creditsRequired' : sortBy;
+  sort[sortField] = order === 'desc' ? -1 : 1;
 
   const skip = (page - 1) * limit;
 

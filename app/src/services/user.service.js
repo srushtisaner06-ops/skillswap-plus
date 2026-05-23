@@ -11,7 +11,8 @@ import api from './api.js';
  */
 export async function getProfile() {
   const res = await api.get('/users/profile');
-  return res.data?.user || null;
+  if (res.error) return null;
+  return res.data?.data?.user || null;
 }
 
 /**
@@ -22,7 +23,7 @@ export async function getProfile() {
 export async function updateProfile(data) {
   const res = await api.put('/users/profile', data);
   if (res.error) throw new Error(res.message);
-  return res.data?.user || null;
+  return res.data?.data?.user || null;
 }
 
 /**
@@ -32,5 +33,6 @@ export async function updateProfile(data) {
  */
 export async function getUserById(id) {
   const res = await api.get(`/users/${id}`);
-  return res.data?.user || null;
+  if (res.error) return null;
+  return res.data?.data?.user || null;
 }

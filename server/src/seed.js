@@ -118,6 +118,10 @@ const seedDB = async () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const nextWeek = new Date(now);
     nextWeek.setDate(nextWeek.getDate() + 7);
+    const scheduledAt = (date, time) => {
+      const datePart = new Date(date).toISOString().split('T')[0];
+      return new Date(`${datePart}T${time}:00.000Z`);
+    };
 
     const sessions = await Session.create([
       {
@@ -126,6 +130,7 @@ const seedDB = async () => {
         skillCategory: 'Programming',
         host: users[1]._id,
         date: tomorrow,
+        scheduledAt: scheduledAt(tomorrow, '15:00'),
         startTime: '15:00',
         endTime: '16:30',
         duration: 90,
@@ -139,6 +144,7 @@ const seedDB = async () => {
         skillCategory: 'Programming',
         host: users[2]._id,
         date: nextWeek,
+        scheduledAt: scheduledAt(nextWeek, '10:00'),
         startTime: '10:00',
         endTime: '11:30',
         duration: 90,
@@ -152,6 +158,7 @@ const seedDB = async () => {
         skillCategory: 'Public Speaking',
         host: users[3]._id,
         date: tomorrow,
+        scheduledAt: scheduledAt(tomorrow, '18:00'),
         startTime: '18:00',
         endTime: '19:00',
         duration: 60,
@@ -165,6 +172,7 @@ const seedDB = async () => {
         skillCategory: 'Design',
         host: users[0]._id,
         date: nextWeek,
+        scheduledAt: scheduledAt(nextWeek, '14:00'),
         startTime: '14:00',
         endTime: '15:30',
         duration: 90,

@@ -43,6 +43,11 @@ const notificationSchema = new mongoose.Schema(
     link: {
       type: String,
       default: ''
+    },
+
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
     }
   },
   {
@@ -54,6 +59,7 @@ const notificationSchema = new mongoose.Schema(
 
 notificationSchema.index({ user: 1, createdAt: -1 });
 notificationSchema.index({ user: 1, read: 1 });
+notificationSchema.index({ user: 1, read: 1, createdAt: -1 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
 

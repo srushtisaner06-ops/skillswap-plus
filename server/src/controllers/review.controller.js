@@ -4,6 +4,8 @@
 
 const Review = require('../models/Review');
 const Session = require('../models/Session');
+const Booking = require('../models/Booking');
+const { BOOKING_STATUS } = require('../models/Booking');
 const { SESSION_STATUS, NOTIFICATION_TYPE } = require('../utils/constants');
 const reviewService = require('../services/review.service');
 const { createNotification } = require('../services/notification.service');
@@ -29,12 +31,19 @@ const createReview = catchAsync(async (req, res, next) => {
     return next(new AppError('You can only review completed sessions.', 400));
   }
 
-  // Reviewer must be a participant
-  const isParticipant = session.participants.some(
-    (p) => p.toString() === reviewerId.toString()
-  );
-  if (!isParticipant) {
-    return next(new AppError('You can only review sessions you participated in.', 403));
+  if (session.host._id.toString() === reviewerId.toString()) {
+    return next(new AppError('You cannot review yourself.', 400));
+  }
+
+  const completedBooking = await Booking.findOne({
+    learner: reviewerId,
+    mentor: session.host._id,
+    session: sessionId,
+    status: BOOKING_STATUS.COMPLETED
+  });
+
+  if (!completedBooking) {
+    return next(new AppError('You can only review a session after your booking is completed.', 403));
   }
 
   // Check for duplicate review

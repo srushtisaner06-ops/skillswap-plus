@@ -9,6 +9,7 @@ import { logout } from '../services/auth.service.js';
 const navItems = [
   { icon: 'dashboard', label: 'Overview', path: '#/dashboard' },
   { icon: 'explore', label: 'Marketplace', path: '#/marketplace' },
+  { icon: 'add_circle', label: 'Create Session', path: '#/create-session' },
   { icon: 'videocam', label: 'Sessions', path: '#/session' },
   { icon: 'forum', label: 'Community', path: '#/community' },
   { icon: 'assignment', label: 'Assignments', path: '#/assignments' },
@@ -26,7 +27,7 @@ export function renderSidebar() {
   const creditDisplay = credits || 0;
 
   return `
-    <aside class="h-screen w-72 fixed left-0 top-0 bg-[#f6f3f2] flex flex-col z-50 font-['Inter'] tracking-tight antialiased" id="app-sidebar">
+    <aside class="h-screen w-72 fixed left-0 top-0 bg-[#f6f3f2] flex flex-col z-50 font-['Inter'] tracking-tight antialiased -translate-x-full lg:translate-x-0 transition-transform" id="app-sidebar" aria-label="Primary navigation">
       <!-- Logo -->
       <div class="p-6 pb-2">
         <div class="px-2">
@@ -44,7 +45,7 @@ export function renderSidebar() {
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-4 py-4 overflow-y-auto no-scrollbar space-y-1">
+      <nav class="flex-1 px-4 py-4 overflow-y-auto no-scrollbar space-y-1" aria-label="Main">
         ${navItems.map(item => `
           <a href="${item.path}" class="sidebar-link ${currentHash === item.path ? 'active' : ''}" data-nav="${item.path}">
             <span class="material-symbols-outlined">${item.icon}</span>
@@ -60,7 +61,7 @@ export function renderSidebar() {
           <p class="text-xs text-zinc-600 font-medium italic leading-snug">"Learn without money. Teach to earn."</p>
         </div>
 
-        <a href="#/mentor-apply" class="block w-full py-3 bg-[#6927ef] text-white rounded-full text-xs font-bold text-center hover:shadow-lg hover:shadow-[#6927ef]/30 transition-all btn-press">Start Teaching</a>
+        <a href="#/create-session" class="block w-full py-3 bg-[#6927ef] text-white rounded-full text-xs font-bold text-center hover:shadow-lg hover:shadow-[#6927ef]/30 transition-all btn-press">Create Session</a>
 
         <div class="flex flex-col gap-1 border-t border-zinc-200 pt-4">
           <a href="#/settings" class="sidebar-link">

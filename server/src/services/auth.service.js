@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════ */
 
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const env = require('../config/env');
 
 /**
@@ -18,7 +19,7 @@ const generateAccessToken = (userId) => {
  * Generate a JWT refresh token.
  */
 const generateRefreshToken = (userId) => {
-  return jwt.sign({ id: userId }, env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ id: userId, tokenVersion: crypto.randomUUID() }, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN
   });
 };
