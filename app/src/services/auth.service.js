@@ -10,6 +10,11 @@ import api from './api.js';
 const TOKEN_KEY = 'token';
 const REFRESH_KEY = 'refreshToken';
 
+function getGoogleAuthUrl() {
+  const apiBase = (window.__API_URL__?.trim?.() || '').replace(/\/$/, '').replace(/\/api$/, '');
+  return `${apiBase}/api/auth/google`;
+}
+
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -69,7 +74,18 @@ export async function login(email, password) {
  * @returns {{ user, accessToken, refreshToken }}
  */
 export async function googleLogin(credential) {
-  const res = await api.post('/api/auth/google', { credential });
+  const response = await fetch(getGoogleAuthUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ credential })
+  });
+
+  const data = await response.json().catch(() => null);
+  const res = response.ok
+    ? { data, error: false }
+    : { error: true, message: data?.message || data?.error || 'Google login failed' };
+
   if (res.error) return { error: res.message };
 
   const { accessToken, refreshToken, user } = res.data.data;

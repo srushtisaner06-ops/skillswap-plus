@@ -341,7 +341,7 @@ export function renderLanding(container) {
 
     // Initialize and prompt Google One Tap / popup
     google.accounts.id.initialize({
-      client_id: window.__GOOGLE_CLIENT_ID || '',
+      client_id: window.__GOOGLE_CLIENT_ID__ || '',
       callback: async (response) => {
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">refresh</span> Signing in...';
@@ -367,7 +367,7 @@ export function renderLanding(container) {
       // If One Tap is dismissed or not available, show popup
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.oauth2.initCodeClient({
-          client_id: window.__GOOGLE_CLIENT_ID || '',
+          client_id: window.__GOOGLE_CLIENT_ID__ || '',
           scope: 'email profile',
           ux_mode: 'popup',
           callback: () => { }
