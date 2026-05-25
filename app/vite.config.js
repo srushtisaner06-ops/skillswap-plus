@@ -16,5 +16,10 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist'
+  },
+  define: {
+    'window.__GOOGLE_CLIENT_ID__': JSON.stringify(process.env.VITE_GOOGLE_CLIENT_ID),
+    'window.__API_URL__': JSON.stringify(process.env.VITE_API_URL)
   }
 });
+
