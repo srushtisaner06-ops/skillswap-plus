@@ -69,7 +69,7 @@ export async function login(email, password) {
  * @returns {{ user, accessToken, refreshToken }}
  */
 export async function googleLogin(credential) {
-  const res = await api.post('/auth/google', { credential });
+  const res = await api.post('/api/auth/google', { credential });
   if (res.error) return { error: res.message };
 
   const { accessToken, refreshToken, user } = res.data.data;
