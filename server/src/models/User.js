@@ -162,6 +162,7 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ 'skillsOffered.name': 1 });
 userSchema.index({ skillsWanted: 1 });
 userSchema.index({ rating: -1 });
+userSchema.index({ rating: -1, ratingCount: -1 });
 userSchema.index({ name: 1 });
 
 // ─── Pre-save: Hash password ───────────────
