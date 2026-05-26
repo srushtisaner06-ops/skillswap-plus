@@ -8,7 +8,10 @@ import { getProfile } from '../services/user.service.js';
 import { store } from '../state.js';
 import { showToast } from '../components/toast.js';
 
-export function renderLanding(container) {
+export function renderLanding(container, options = {}) {
+  const { hideTopNav = false, initialAuthTab = 'register' } = options;
+  const startsOnLogin = initialAuthTab === 'login';
+
   // If already authenticated, redirect to dashboard
   if (isAuthenticated()) {
     window.location.hash = '/dashboard';
@@ -16,7 +19,7 @@ export function renderLanding(container) {
   }
 
   container.innerHTML = `
-    <!-- Top Navigation -->
+    ${hideTopNav ? '' : `
     <nav class="fixed top-0 w-full z-50 bg-[#fcf9f8]/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(28,27,27,0.03)] border-b border-surface-variant/20">
       <div class="flex justify-between items-center h-20 px-8 w-full max-w-full mx-auto">
         <div class="flex items-center gap-8">
@@ -33,8 +36,9 @@ export function renderLanding(container) {
         </div>
       </div>
     </nav>
+    `}
 
-    <main class="pt-20">
+    <main class="${hideTopNav ? '' : 'pt-20'}">
       <!-- Hero Section -->
       <section class="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden px-8 py-16">
         <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]"></div>
@@ -87,12 +91,12 @@ export function renderLanding(container) {
 
               <!-- Tab Switcher -->
               <div class="flex bg-zinc-100 rounded-full p-1 mb-6" id="auth-tabs" role="tablist">
-                <button class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all bg-white text-zinc-900 shadow-sm" data-tab="register" role="tab" aria-selected="true" aria-controls="register-form" tabindex="0">Sign Up</button>
-                <button class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-zinc-400" data-tab="login" role="tab" aria-selected="false" aria-controls="login-form" tabindex="-1">Log In</button>
+                <button class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all ${startsOnLogin ? 'text-zinc-400' : 'bg-white text-zinc-900 shadow-sm'}" data-tab="register" role="tab" aria-selected="${startsOnLogin ? 'false' : 'true'}" aria-controls="register-form" tabindex="${startsOnLogin ? '-1' : '0'}">Sign Up</button>
+                <button class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all ${startsOnLogin ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400'}" data-tab="login" role="tab" aria-selected="${startsOnLogin ? 'true' : 'false'}" aria-controls="login-form" tabindex="${startsOnLogin ? '0' : '-1'}">Log In</button>
               </div>
 
               <!-- Register Form -->
-              <form class="space-y-4" id="register-form" role="tabpanel" aria-labelledby="auth-tabs">
+              <form class="space-y-4 ${startsOnLogin ? 'hidden' : ''}" id="register-form" role="tabpanel" aria-labelledby="auth-tabs" ${startsOnLogin ? 'aria-hidden="true"' : ''}>
                 <div>
                   <label class="text-[10px] uppercase tracking-[0.1em] text-on-surface-variant font-black block mb-2 px-1">Full Name</label>
                   <input id="reg-name" class="w-full p-4 bg-surface-container-low/50 rounded-lg border border-transparent focus:border-primary/20 focus:bg-white transition-all outline-none" placeholder="Alex Rivera" type="text" required />
@@ -116,7 +120,7 @@ export function renderLanding(container) {
               </form>
 
               <!-- Login Form (hidden by default) -->
-              <form class="space-y-4 hidden" id="login-form" role="tabpanel" aria-labelledby="auth-tabs" aria-hidden="true">
+              <form class="space-y-4 ${startsOnLogin ? '' : 'hidden'}" id="login-form" role="tabpanel" aria-labelledby="auth-tabs" ${startsOnLogin ? '' : 'aria-hidden="true"'}>
                 <div>
                   <label class="text-[10px] uppercase tracking-[0.1em] text-on-surface-variant font-black block mb-2 px-1">Email Address</label>
                   <input id="login-email" class="w-full p-4 bg-surface-container-low/50 rounded-lg border border-transparent focus:border-primary/20 focus:bg-white transition-all outline-none" placeholder="alex@skillswap.plus" type="email" required />

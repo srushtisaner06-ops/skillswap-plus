@@ -23,8 +23,26 @@ import { renderCreateSession } from './pages/create-session.js';
 import { renderReferral } from './pages/referral.js';
 import { showToast } from './components/toast.js';
 
-// Pages that use the sidebar layout
-const sidebarPages = ['/dashboard', '/marketplace', '/session', '/community', '/assignments', '/profile', '/settings', '/mentor-apply', '/create-session', '/referral'];
+const routeLayouts = {
+  '/': 'public',
+  '/login': 'auth',
+  '/signup': 'auth',
+  '/auth': 'auth',
+  '/dashboard': 'app',
+  '/marketplace': 'app',
+  '/session': 'app',
+  '/community': 'app',
+  '/assignments': 'app',
+  '/profile': 'app',
+  '/settings': 'app',
+  '/mentor-apply': 'app',
+  '/create-session': 'app',
+  '/referral': 'app'
+};
+
+function getRouteLayout(hash) {
+  return routeLayouts[hash] || 'public';
+}
 
 /**
  * Fetch the user profile from API and populate state.
@@ -40,13 +58,13 @@ async function initUserFromAPI() {
 
 // Router setup
 router.onBeforeNavigate = (hash) => {
-  const needsSidebar = sidebarPages.includes(hash);
+  const needsAppShell = getRouteLayout(hash) === 'app';
   const sidebarEl = document.getElementById('app-sidebar') || document.getElementById('sidebar');
   const mainEl = document.getElementById('page-content');
   const headerEl = document.getElementById('persistent-header');
   
   if (sidebarEl) {
-    if (needsSidebar) {
+    if (needsAppShell) {
       sidebarEl.classList.remove('-translate-x-full');
       sidebarEl.classList.add('translate-x-0');
 
@@ -88,6 +106,8 @@ router.onBeforeNavigate = (hash) => {
         headerEl.classList.add('hidden');
         headerEl.classList.remove('lg:ml-72');
       }
+      const mobileBackdrop = document.getElementById('mobile-sidebar-backdrop');
+      if (mobileBackdrop) mobileBackdrop.classList.remove('open');
     }
   }
 };
@@ -96,6 +116,15 @@ router.onBeforeNavigate = (hash) => {
 router
   .register('/', (c) => {
     renderLanding(c);
+  })
+  .register('/login', (c) => {
+    renderLanding(c, { hideTopNav: true, initialAuthTab: 'login' });
+  })
+  .register('/signup', (c) => {
+    renderLanding(c, { hideTopNav: true, initialAuthTab: 'register' });
+  })
+  .register('/auth', (c) => {
+    renderLanding(c, { hideTopNav: true, initialAuthTab: 'register' });
   })
   .register('/dashboard', (c) => {
     return renderDashboard(c);
