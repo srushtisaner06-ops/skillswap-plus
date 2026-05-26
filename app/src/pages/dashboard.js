@@ -161,42 +161,21 @@ export async function renderDashboard(container) {
   const incomingBookings = (bookingData.mentoring || []).filter(b => bookingStatus(b) === 'pending');
   const mentoringBookings = (bookingData.mentoring || []).filter(b => ['accepted', 'completed', 'cancelled', 'rejected'].includes(bookingStatus(b)));
   const learningBookings = (bookingData.learning || []).filter(b => ['pending', 'accepted', 'completed', 'cancelled', 'rejected'].includes(bookingStatus(b)));
-  const recommendationCards = recommendations.length > 0 ? recommendations.map((r, index) => ({
+  const recommendationCards = recommendations.map((r) => ({
     title: r.title,
-    category: r.category || 'Recommended',
+    category: r.category || r.session?.skillCategory || 'Recommended',
     reason: r.reason,
-    detail: r.detail || 'Based on your recent activity, profile, and learning goals.',
-    mentor: r.sourceType === 'resume' ? 'Resume Coach' : r.sourceType === 'project' ? 'Project Guide' : 'SkillSwap+ AI',
-    credits: r.credits || 0,
-    img: [
-      'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=900&q=80'
-    ][index % 4],
-    mentorImg: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.sourceType || 'AI') + '&background=7c3aed&color=fff'
-  })) : [
-    {
-      title: 'Advanced Three.js & Shaders',
-      category: 'Development',
-      reason: 'Matches your interest in Creative Coding and recent React completion.',
-      detail: 'Our AI analyzed your 5 most recent workshop completions and identified a growing pattern in WebGL interest.',
-      mentor: 'Elena Volkov',
-      credits: 12,
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh6hmgK7eJ-VPizGi5r9uMFAQj4H9QakDSA1HyXps7Y-7uBAqKymkY31_2TIiC9Jj1_lB7UtIw5aJDeBeUFQVYDogxvcZBXsR2LEps_vzWZ95O2ze9qCs0STWp0_sFJYxcypFIDFXalMFNBi2ObSstHHW9BjFBGDSlgofEvQqfpm9xTPZC439mnRf6phDfpttVMKAPuny8NJFj22ph2j979TKmnDG3w2CB5r1P-QVscRzQwoCp9UbsNiUnH0mKHWqHD6TFKqAqvQ',
-      mentorImg: 'https://ui-avatars.com/api/?name=Elena+Volkov&background=7c3aed&color=fff'
-    },
-    {
-      title: 'Spatial Design Systems',
-      category: 'UI Design',
-      reason: 'Popular among people with your Skill Profile (Product Designer).',
-      detail: '85% of users with the "Product Designer" tag have added this workshop to their wishlist this week.',
-      mentor: 'Sarah Chen',
-      credits: 8,
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD95xttH7ol9zdnNsaHgkaT_Gsk6XavNkdFTjNN_jq-OfY3FhixNPEUj1kn0k8Uv2KuOHhyvnTtdaVPVlitdlitUynqJNXZrEitDth_C7TmIjlxYU98BrSDA0EZfbQO_pAMIx6eLEIh0dulnG6bpgMr5WW-VkB9ncQebRiTL60SSLyhI8OqLiNdELMZSAaiO3kjbOtgeG_SfNj0pTqx3RMzzSroI14ZUBqgRvhOxCz0-2CjkWdCcGjCr5HQXQbB1XYThrlqU9xU2Q',
-      mentorImg: 'https://ui-avatars.com/api/?name=Sarah+Chen&background=059669&color=fff'
-    }
-  ];
+    detail: r.detail || 'Weighted from your interests, learning history, mentor quality, and session demand.',
+    mentor: r.mentor?.name || 'Mentor',
+    mentorRating: Number(r.mentor?.rating || 0),
+    mentorRatingCount: Number(r.mentor?.ratingCount || 0),
+    credits: r.credits || r.session?.creditsRequired || 0,
+    tags: (r.session?.tags || r.relatedSkills || []).slice(0, 3),
+    relevance: r.relevance || 'Recommended',
+    score: Math.round((Number(r.score) || 0) * 100),
+    targetUrl: r.targetUrl || '#/marketplace',
+    mentorImg: r.mentor?.profilePicture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(r.mentor?.name || 'Mentor') + '&background=7c3aed&color=fff'
+  }));
 
   // Color map for Tailwind-safe badge colors
   const colorMap = {
@@ -282,41 +261,71 @@ export async function renderDashboard(container) {
 
       <!-- Main Grid -->
       <div class="grid grid-cols-12 gap-12">
-        <!-- AI Recommendations -->
+        <!-- Recommendations -->
         <section class="col-span-12 lg:col-span-8">
           <div class="flex justify-between items-center mb-8">
-            <h3 class="text-2xl font-black tracking-tight">AI Recommended for You</h3>
+            <h3 class="text-2xl font-black tracking-tight">Recommended For You</h3>
             <a href="#/marketplace" class="text-primary font-bold text-sm hover:underline">See all</a>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            ${recommendationCards.slice(0, 4).map(card => `
-              <div class="group bg-white rounded-2xl p-6 border border-zinc-100 hover:border-primary/20 hover:shadow-2xl hover:shadow-zinc-200/50 transition-all duration-300">
-                <div class="relative h-44 w-full rounded-xl overflow-hidden mb-5">
-                  <img alt="${card.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${card.img}" />
-                  <div class="absolute top-3 left-3">
-                    <span class="bg-black/60 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded">${card.category}</span>
+            ${recommendationCards.length > 0 ? recommendationCards.slice(0, 4).map(card => `
+              <article class="group bg-white rounded-2xl p-6 border border-zinc-100 hover:border-primary/20 hover:shadow-2xl hover:shadow-zinc-200/50 transition-all duration-300">
+                <div class="flex items-start justify-between gap-4 mb-5">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <img alt="${card.mentor}" class="w-11 h-11 rounded-xl object-cover" src="${card.mentorImg}" />
+                    <div class="min-w-0">
+                      <p class="text-[10px] font-black uppercase tracking-widest text-zinc-400 truncate">${card.category}</p>
+                      <h4 class="text-lg font-black text-zinc-900 truncate">${card.title}</h4>
+                    </div>
+                  </div>
+                  <span class="shrink-0 bg-violet-50 text-primary px-2.5 py-1 rounded-full text-[9px] font-black uppercase">${card.relevance}</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-5 text-xs">
+                  <div class="bg-zinc-50 rounded-xl p-3">
+                    <p class="text-zinc-400 font-black uppercase text-[9px]">Mentor</p>
+                    <p class="font-bold text-zinc-800 truncate">${card.mentor}</p>
+                  </div>
+                  <div class="bg-zinc-50 rounded-xl p-3">
+                    <p class="text-zinc-400 font-black uppercase text-[9px]">Rating</p>
+                    <p class="font-bold text-zinc-800">${card.mentorRating > 0 ? `★ ${card.mentorRating.toFixed(1)}` : 'New'}</p>
+                  </div>
+                  <div class="bg-zinc-50 rounded-xl p-3">
+                    <p class="text-zinc-400 font-black uppercase text-[9px]">Credits</p>
+                    <p class="font-bold text-primary">${card.credits}</p>
                   </div>
                 </div>
-                <h4 class="text-lg font-bold text-zinc-900 mb-2">${card.title}</h4>
-                <div class="relative bg-violet-50/50 rounded-xl p-4 border border-violet-100 cursor-help transition-all hover:bg-violet-100/50 tooltip">
+
+                <div class="relative bg-violet-50/50 rounded-xl p-4 border border-violet-100 tooltip">
                   <p class="text-[10px] text-violet-700 font-black mb-1 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-xs">auto_awesome</span> WHY THIS?
+                    <span class="material-symbols-outlined text-xs">travel_explore</span> MATCH SIGNAL
                   </p>
                   <p class="text-[11px] text-violet-600 leading-relaxed font-medium">${card.reason}</p>
                   <div class="tooltip-text absolute bottom-full left-0 mb-3 w-full bg-zinc-900 text-white p-3 rounded-xl text-[10px] font-medium z-10 shadow-xl">
-                    ${card.detail}
+                    ${card.detail} Relevance score: ${card.score}%.
                     <div class="absolute -bottom-1 left-6 w-2 h-2 bg-zinc-900 rotate-45"></div>
                   </div>
                 </div>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-zinc-50">
-                  <div class="flex items-center gap-2">
-                    <img alt="${card.mentor}" class="w-6 h-6 rounded-full" src="${card.mentorImg}" />
-                    <span class="text-xs font-medium text-zinc-600">${card.mentor}</span>
-                  </div>
-                  <span class="text-primary font-black text-sm">${card.credits} Credits</span>
+
+                <div class="flex flex-wrap gap-2 mt-5">
+                  ${card.tags.length ? card.tags.map(tag => `<span class="bg-zinc-100 text-zinc-600 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase">${tag}</span>`).join('') : '<span class="text-xs text-zinc-400 font-bold">No tags yet</span>'}
                 </div>
+
+                <a href="${card.targetUrl}" class="mt-5 inline-flex w-full items-center justify-center gap-2 bg-primary text-white py-3 rounded-full text-sm font-black shadow-lg shadow-primary/20 btn-press" aria-label="Open recommended session ${card.title}">
+                  View session
+                  <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+              </article>
+            `).join('') : `
+              <div class="md:col-span-2 bg-white rounded-2xl border border-zinc-100 p-10 text-center">
+                <div class="w-14 h-14 bg-zinc-50 rounded-full mx-auto flex items-center justify-center mb-4">
+                  <span class="material-symbols-outlined text-3xl text-zinc-300">explore</span>
+                </div>
+                <h4 class="text-lg font-black text-zinc-900">No personalized sessions yet</h4>
+                <p class="text-sm text-zinc-500 mt-2 max-w-md mx-auto">Add skills to your profile or complete a booking, and matching sessions will appear here.</p>
+                <a href="#/marketplace" class="mt-6 inline-flex bg-primary text-white px-5 py-2.5 rounded-full font-black text-xs shadow-lg shadow-primary/20 btn-press">Browse sessions</a>
               </div>
-            `).join('')}
+            `}
           </div>
         </section>
 

@@ -128,6 +128,8 @@ sessionSchema.index({ host: 1, scheduledAt: 1 });
 sessionSchema.index({ status: 1, date: 1 });
 sessionSchema.index({ status: 1, scheduledAt: 1 });
 sessionSchema.index({ skillCategory: 1 });
+sessionSchema.index({ status: 1, skillCategory: 1, scheduledAt: 1 });
+sessionSchema.index({ status: 1, tags: 1, scheduledAt: 1 });
 sessionSchema.index({ title: 1 });
 sessionSchema.index({ tags: 1 });
 sessionSchema.index({ date: 1, startTime: 1, endTime: 1 });
